@@ -25,7 +25,7 @@ def updatePList():
         query += "INNER JOIN song_artists a ON a.song_id=s.id "
         if where!='':
             where += "AND "
-        where += "a.arist_id="+str(genre)+" "
+        where += "a.artist_id="+str(genre)+" "
     if album:
         if where!='':
             where += "AND "
