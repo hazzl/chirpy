@@ -1,0 +1,110 @@
+#!/usr/bin/python3
+import sys
+from PyQt5.QtCore import QUrl, QObject, QMetaObject, Qt
+from PyQt5.QtMultimedia import QMediaPlayer
+from PyQt5.QtWidgets import QApplication
+from PyQt5.QtQuick import QQuickView, QQuickItem
+from PyQt5.QtQml import QQmlApplicationEngine
+import sqlite3
+from sqlistmodel import sqlistmodel, playlistmodel
+
+def playNext():
+    (name,url) = plistModel.pop(0)
+    song.setProperty("source", 'file://'+url)
+    QMetaObject.invokeMethod(song, "play", Qt.DirectConnection)
+def updatePList():
+    genre = int(cgenre.property("uid"))
+    artist = int(cartist.property("uid"))
+    album = int(calbum.property("uid"))
+    query = "SELECT s.name, s.path FROM songs s "
+    where = '' 
+    if genre:
+        query += "INNER JOIN song_genres g ON g.song_id=s.id "
+        where += "g.genre_id="+str(genre)+" "
+    if artist:
+        query += "INNER JOIN song_artists a ON a.song_id=s.id "
+        if where!='':
+            where += "AND "
+        where += "a.arist_id="+str(genre)+" "
+    if album:
+        if where!='':
+            where += "AND "
+        where += "s.album="+str(album)+" "
+    if where!='':
+        where = "WHERE "+where
+    plistModel.updateData(query+where+"ORDER BY s.trackno ASC LIMIT 30")
+def updateArtists():
+    genre = int(cgenre.property("uid"))
+    if genre:
+        artistModel.updateData("""SELECT DISTINCT a.id, a.name
+           FROM song_genres g INNER JOIN songs s ON g.song_id = s.id
+           INNER JOIN song_artists sa USING (song_id)
+           INNER JOIN artists a ON a.id = sa.artist_id
+           WHERE g.genre_id = """+str(genre)+" ORDER BY a.name ASC")
+    else:
+        artistModel.updateData("SELECT id,name FROM artists ORDER BY name ASC")
+def updateAlbums():
+    genre = int(cgenre.property("uid"))
+    artist = int(cartist.property("uid"))
+    if artist and genre:
+      albumModel.updateData("""SELECT DISTINCT a.id, a.name FROM
+        song_genres g INNER JOIN songs s ON g.song_id = s.id
+        INNER JOIN song_artists sa ON sa.song_id = s.id
+        INNER JOIN albums a ON s.album = a. id
+        WHERE g.genre_id ="""+str(genre)+
+        " AND sa.artist_id ="+str(artist)+
+        " ORDER BY a.name ASC")
+    elif genre:
+      albumModel.updateData("""SELECT DISTINCT a.id, a.name FROM
+        song_genres g INNER JOIN songs s ON g.song_id = s.id 
+        INNER JOIN albums a ON s.album = a.id 
+        WHERE g.genre_id="""+str(genre)+" ORDER BY a.name ASC")
+    elif artist:
+      albumModel.updateData("""SELECT DISTINCT a.name, a.id FROM
+        song_artists sa INNER JOIN songs s ON sa.song_id = s.id
+        INNER JOIN albums a ON s.album = a id
+        WHERE sa.artist_id ="""+str(artist)+" ORDER BY a.name ASC")
+    else:
+        albumModel.updateData("SELECT a.id, a.name FROM albums a ORDER BY a.name ASC")
+
+if __name__ == '__main__':
+    app = QApplication(sys.argv)
+    engine = QQmlApplicationEngine(app)
+    engine.quit.connect(app.quit)
+    context = engine.rootContext()
+
+    conn = sqlite3.connect('chirpy.sqlite')
+    genreModel = sqlistmodel(conn)
+    genreModel.updateData("SELECT id,name FROM genres ORDER BY name ASC")
+    context.setContextProperty('genreModel', genreModel)
+    artistModel = sqlistmodel(conn)
+    context.setContextProperty('artistModel', artistModel)
+    albumModel = sqlistmodel(conn)
+    context.setContextProperty('albumModel', albumModel)
+    plistModel = playlistmodel(conn)
+    context.setContextProperty('plistModel', plistModel)
+
+    qv = QQuickView(engine, None)
+    qv.setSource(QUrl('chirpy.qml'))
+
+    root = qv.rootObject()
+    cgenre = root.findChild(QQuickItem, "currentGenre")
+    calbum = root.findChild(QQuickItem, "currentAlbum")
+    cartist = root.findChild(QQuickItem, "currentArtist")
+    song = root.findChild(QObject, "song")
+    playbutton = root.findChild(QQuickItem, "playbutton")
+    cgenre.uidChanged.connect(updateAlbums)
+    cgenre.uidChanged.connect(updateArtists)
+    cgenre.uidChanged.connect(updatePList)
+    cartist.uidChanged.connect(updateAlbums)
+    cartist.uidChanged.connect(updatePList)
+    calbum.uidChanged.connect(updatePList)
+    song.stopped.connect(playNext)
+    playbutton.clicked.connect(playNext)
+    updateArtists()
+    updateAlbums()
+    updatePList()
+
+    qv.show()
+
+    sys.exit(app.exec_())
