@@ -92,6 +92,21 @@ Rectangle {
 	    }
 	}
     }
+    ListView {
+	id: playList
+	model: plistModel
+        anchors.bottom: title.top
+	anchors.right: parent.right
+	height: 110
+	width: 395
+	clip: true
+	highlight: Rectangle { color: "darkgrey"; opacity: .2 }
+	delegate: Text {
+	    font.pixelSize: Global.normalSize
+	    color: Global.textColor
+	    text: name
+	}
+    }
     Audio {
         id: song
 	objectName: "song"

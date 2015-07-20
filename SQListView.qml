@@ -42,7 +42,7 @@ ListView {
 	    PropertyChanges {
 		target: sqlistView
 		x: reference.x
-		y: reference.y * 1.2
+		y: reference.y 
 		height: reference.height
 		opacity: 0
 		enabled: false
@@ -52,7 +52,7 @@ ListView {
 	    PropertyChanges {
 		target: sqlistView
 		x: reference.x
-		y: (reference.y + reference.height) * 1.2
+		y: (reference.y + reference.height) 
 		height: title.y - y
 		opacity: 1
 		enabled: true
