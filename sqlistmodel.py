@@ -11,8 +11,6 @@ class sqlistmodel(QAbstractListModel):
 			Qt.UserRole: 0}
 	def printData(self):
 		print(self._data)
-	def getList(self):
-		return self._data
 	def updateData(self, query):
 		q = self._conn.cursor()
 		q.execute(query)

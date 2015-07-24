@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 import sys
-from PyQt5.QtCore import QUrl, QObject, Qt
+from PyQt5.QtCore import QUrl, QObject, Qt, QModelIndex
 from PyQt5.QtMultimedia import QMediaPlayer, QMediaContent, QMediaPlaylist
 from PyQt5.QtWidgets import QApplication
 from PyQt5.QtQuick import QQuickView, QQuickItem
@@ -38,8 +38,9 @@ def updatePList():
         playlist.currentIndexChanged.connect(updateCItem)
         qmlPlaylist.clicked.connect(playlist.setCurrentIndex)
     playlist.clear()
-    for entry in plistModel.getList():
-        playlist.addMedia(QMediaContent(QUrl.fromLocalFile(entry[1]))) 
+    for i in range (plistModel.rowCount()-1):
+        playlist.addMedia(QMediaContent(QUrl.fromLocalFile(
+		plistModel.data(plistModel.createIndex(i,0),Qt.UserRole)))) 
 def updateArtists():
     genre = int(cgenre.property("uid"))
     if genre:
