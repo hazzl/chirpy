@@ -1,22 +1,20 @@
 #!/usr/bin/python3
 import sys
-from PyQt5.QtCore import QUrl, QObject, QMetaObject, Qt
-from PyQt5.QtMultimedia import QMediaPlayer
+from PyQt5.QtCore import QUrl, QObject, Qt
+from PyQt5.QtMultimedia import QMediaPlayer, QMediaContent, QMediaPlaylist
 from PyQt5.QtWidgets import QApplication
 from PyQt5.QtQuick import QQuickView, QQuickItem
 from PyQt5.QtQml import QQmlApplicationEngine
 import sqlite3
 from sqlistmodel import sqlistmodel, playlistmodel
 
-def playNext():
-    (name,url) = plistModel.pop(0)
-    song.setProperty("source", 'file://'+url)
-    QMetaObject.invokeMethod(song, "play", Qt.DirectConnection)
+def updateCItem(pos):
+    qmlPlaylist.setProperty("currentIndex", pos)
 def updatePList():
     genre = int(cgenre.property("uid"))
     artist = int(cartist.property("uid"))
     album = int(calbum.property("uid"))
-    query = "SELECT DISTINCT s.id, s.name, s.path FROM songs s "
+    query = "SELECT DISTINCT s.name, s.path FROM songs s "
     where = '' 
     if genre:
         query += "INNER JOIN song_genres g ON g.song_id=s.id "
@@ -32,8 +30,16 @@ def updatePList():
         where += "s.album="+str(album)+" "
     if where!='':
         where = "WHERE "+where
-    print(query+where+"ORDER BY s.trackno ASC LIMIT 30")
-    plistModel.updateData(query+where+"ORDER BY s.trackno ASC LIMIT 30")
+    plistModel.updateData(query+where+"ORDER BY s.album,s.trackno ASC LIMIT 30")
+    playlist = song.playlist()
+    if playlist is None:
+        playlist=QMediaPlaylist(song)
+        song.setPlaylist(playlist)
+        playlist.currentIndexChanged.connect(updateCItem)
+        qmlPlaylist.clicked.connect(playlist.setCurrentIndex)
+    playlist.clear()
+    for entry in plistModel.getList():
+        playlist.addMedia(QMediaContent(QUrl.fromLocalFile(entry[1]))) 
 def updateArtists():
     genre = int(cgenre.property("uid"))
     if genre:
@@ -67,7 +73,6 @@ def updateAlbums():
     if where:
       query += "WHERE "+where
     query += "ORDER BY a.name ASC"
-    print (query)
     albumModel.updateData(query)
 
 if __name__ == '__main__':
@@ -88,23 +93,23 @@ if __name__ == '__main__':
     plistModel = playlistmodel(conn)
     context.setContextProperty('plistModel', plistModel)
 
-    qv = QQuickView(engine, None)
+    song = QMediaPlayer()
+    context.setContextProperty('song', song)
+
+    qv = QQuickView(engine,None)
     qv.setSource(QUrl('chirpy.qml'))
 
     root = qv.rootObject()
     cgenre = root.findChild(QQuickItem, "currentGenre")
     calbum = root.findChild(QQuickItem, "currentAlbum")
     cartist = root.findChild(QQuickItem, "currentArtist")
-    song = root.findChild(QObject, "song")
-    playbutton = root.findChild(QQuickItem, "playbutton")
+    qmlPlaylist = root.findChild(QQuickItem, "playList")
     cgenre.uidChanged.connect(updateAlbums)
     cgenre.uidChanged.connect(updateArtists)
     cgenre.uidChanged.connect(updatePList)
     cartist.uidChanged.connect(updateAlbums)
     cartist.uidChanged.connect(updatePList)
     calbum.uidChanged.connect(updatePList)
-    song.stopped.connect(playNext)
-    playbutton.clicked.connect(playNext)
     updateArtists()
     updateAlbums()
     updatePList()

@@ -63,21 +63,17 @@ class mediabase:
 		self._conn.commit()
 		self._conn.isolation_level="DEFERRED"
 	def addObj(self, mo):
+		basetime=self.getMTime(mo['path'][0])
+		if basetime > 0 and mo['mtime'][0] > basetime:
+			raise NotImplementedError('re-adding existing data')
 		q = self._conn.cursor()
-		q.execute("SELECT path, filemtime FROM songs WHERE path = ?;", (mo['path'],))
-		data = q.fetchone()
-		if data is not None:
-			if mo['mtime'] > data[1]:
-				raise NotImplementedError('re-adding existing data not yet supported')
-			else:
-				return
 		for key in ['album', 'title', 'artist', 'genre']:
 			if key not in mo.keys():
 				mo[key]=['Unknown']
-		mo['album'] = self.getId('albums', mo['album'][0])
+		mo['album'][0] = self.getId('albums', mo['album'][0])
 		rows = "album,name,path,filemtime"
 		parameters = '?,?,?,?'
-		values = ( mo['album'], mo['title'][0], mo['path'], mo['mtime'])
+		values = ( mo['album'][0], mo['title'][0], mo['path'][0], mo['mtime'][0])
 		if 'track-number' in mo.keys():
 			rows = rows+',trackno'
 			parameters = parameters+',?'
@@ -101,3 +97,8 @@ class mediabase:
 			return q.lastrowid
 		else:
 			return data[0]
+	def getMTime(self, path):
+		q = self._conn.cursor()
+		q.execute("SELECT filemtime FROM songs WHERE path = ?",(path,))
+		data = q.fetchone()
+		return data[0] if data is not None else 0

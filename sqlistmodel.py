@@ -11,6 +11,8 @@ class sqlistmodel(QAbstractListModel):
 			Qt.UserRole: 0}
 	def printData(self):
 		print(self._data)
+	def getList(self):
+		return self._data
 	def updateData(self, query):
 		q = self._conn.cursor()
 		q.execute(query)
@@ -29,20 +31,16 @@ class sqlistmodel(QAbstractListModel):
 		else:
 			return None
 	def roleNames(self):
-		return {Qt.DisplayRole: "name",
-			Qt.UserRole: "uid",}
+		return {Qt.DisplayRole: b"name",
+			Qt.UserRole: b"uid"}
 class playlistmodel(sqlistmodel):
 	def __init__(self, conn):
 		QAbstractListModel.__init__(self)
 		self._conn = conn
-		self._data = [(0, '', '')]
+		self._data = [('', '')]
 		self._rolesindex = {
-			Qt.DisplayRole: 1, 
-			Qt.UserRole: 0,
-			Qt.UserRole+1: 2}
+			Qt.DisplayRole: 0, 
+			Qt.UserRole: 1}
 	def roleNames(self):
-		return {Qt.DisplayRole: "name",
-			Qt.UserRole: "uid",
-			Qt.UserRole+1: "url"}
-	def pop(self, index):
-		return self._data.pop(index)
+		return {Qt.DisplayRole: b"name",
+			Qt.UserRole: b"url"}

@@ -51,9 +51,9 @@ ListView {
 	    name: "showing"
 	    PropertyChanges {
 		target: sqlistView
-		x: reference.x
-		y: (reference.y + reference.height) 
-		height: title.y - y
+		x: currentGenre.x
+		y: (currentGenre.y + currentGenre.height) 
+		height: playbutton.y - y
 		opacity: 1
 		enabled: true
 	    }

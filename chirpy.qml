@@ -1,6 +1,5 @@
 ﻿import QtQuick 2.0
 import QtQuick.Controls 1.0
-import QtMultimedia 5.0
 import "globals.js" as Global
 
 Rectangle {
@@ -94,35 +93,30 @@ Rectangle {
     }
     ListView {
 	id: playList
+	signal clicked(int index)
+	objectName: "playList"
 	model: plistModel
-        anchors.bottom: title.top
+        anchors.bottom: playbutton.top
 	anchors.right: parent.right
 	height: 110
-	width: 395
+	width: parent.width/2
 	clip: true
+	preferredHighlightBegin: Global.normalSize
+	preferredHighlightEnd: 4*Global.normalSize
+	highlightRangeMode: ListView.ApplyRange
 	highlight: Rectangle { color: "darkgrey"; opacity: .2 }
 	delegate: Text {
-	    font.pixelSize: Global.normalSize
+	    font.pixelSize: ListView.isCurrentItem ? Global.bigSize : Global.normalSize
 	    color: Global.textColor
 	    text: name
+	    MouseArea {
+		anchors.fill:parent
+		onClicked:  {playList.currentIndex = index;
+			playList.clicked(index);}
+	    }
+	    Behavior on font.pixelSize { NumberAnimation { easing.type: Easing.InOutQuart; duration: 200 }}
 	}
     }
-    Audio {
-        id: song
-	objectName: "song"
-	source: ""
-    }
-
-    Text {
-        id: title
-        anchors.horizontalCenter: parent.horizontalCenter
-        anchors.bottom: playbutton.top
-        anchors.bottomMargin: 10
-        text: song.metaData.title ? song.metaData.title : ""
-        color: Global.textColor
-        font.pixelSize: Global.bigSize
-    }
-
     IButton {
         id: playbutton
         objectName: "playbutton"
@@ -131,8 +125,8 @@ Rectangle {
         anchors.left: parent.left
         anchors.leftMargin: 8
         width: 65
-        iconSource: song.playbackState === Audio.PlayingState ? "icons/Pause.png" : "icons/Play.png"
-        //onClicked: song.playbackState === Audio.PlayingState ? song.pause() : song.play()
+        iconSource: song.state ===  Global.PlayingState ? "icons/Pause.png" : "icons/Play.png"
+        onClicked: song.state === Global.PlayingState ? song.pause() : song.play()
     }
 
     Slider {
@@ -143,7 +137,7 @@ Rectangle {
         anchors.left: playbutton.right
         anchors.leftMargin: 8
         value: song.position / song.duration
-        onPressedChanged: if (!pressed) song.seek(song.duration * value)
+        onPressedChanged: if (!pressed) song.position=(song.duration * value)
     }
     Text {
         id: timer
