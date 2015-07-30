@@ -38,7 +38,7 @@ def updatePList():
         where += "s.album="+str(album)+" "
     if where!='':
         where = "WHERE "+where
-    plistModel.updateData(query+where+"ORDER BY s.album,s.trackno ASC LIMIT 30")
+    plistModel.updateData(query+where+"ORDER BY s.album,s.trackno ASC LIMIT 50")
     playlist = song.playlist()
     if playlist is None:
         playlist=QMediaPlaylist(song)
