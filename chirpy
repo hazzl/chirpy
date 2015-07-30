@@ -1,5 +1,6 @@
 #!/usr/bin/python3
 import sys
+import os.path as Path
 from PyQt5.QtCore import QUrl, QObject, Qt, QModelIndex
 from PyQt5.QtMultimedia import QMediaPlayer, QMediaContent, QMediaPlaylist
 from PyQt5.QtWidgets import QApplication
@@ -10,6 +11,13 @@ from sqlistmodel import sqlistmodel, playlistmodel
 
 def updateCItem(pos):
     qmlPlaylist.setProperty("currentIndex", pos)
+    songpath = plistModel.data(plistModel.createIndex(pos,0), Qt.UserRole)
+    newcover = Path.join(Path.dirname(songpath),"album.jpg")
+    oldcover = QUrl.toLocalFile(cover.property("source"))
+    if newcover != oldcover:
+        if not Path.isfile(newcover):
+            newcover = None
+        cover.setProperty("source", QUrl.fromLocalFile(newcover))
 def updatePList():
     genre = int(cgenre.property("uid"))
     artist = int(cartist.property("uid"))
@@ -105,6 +113,7 @@ if __name__ == '__main__':
     calbum = root.findChild(QQuickItem, "currentAlbum")
     cartist = root.findChild(QQuickItem, "currentArtist")
     qmlPlaylist = root.findChild(QQuickItem, "playList")
+    cover = root.findChild(QQuickItem, "cover")
     cgenre.uidChanged.connect(updateAlbums)
     cgenre.uidChanged.connect(updateArtists)
     cgenre.uidChanged.connect(updatePList)

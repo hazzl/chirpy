@@ -91,6 +91,16 @@ Rectangle {
 	    }
 	}
     }
+    Image {
+	id: cover
+	objectName: "cover"
+	anchors.bottom: playList.top
+	anchors.bottomMargin: 10
+	anchors.left: playList.left
+	height: 128
+	width: 128
+	fillMode: Image.PreserveAspectFit
+    }	
     ListView {
 	id: playList
 	signal clicked(int index)
