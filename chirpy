@@ -39,13 +39,6 @@ def updatePList():
     if where!='':
         where = "WHERE "+where
     plistModel.updateData(query+where+"ORDER BY s.album,s.trackno ASC LIMIT 30")
-    playlist = song.playlist()
-    if playlist is None:
-        playlist=QMediaPlaylist(song)
-        song.setPlaylist(playlist)
-        playlist.currentIndexChanged.connect(updateCItem)
-        qmlPlaylist.clicked.connect(playlist.setCurrentIndex)
-    playlist.clear()
     for i in range (plistModel.rowCount()):
         playlist.addMedia(QMediaContent(QUrl.fromLocalFile(
 		plistModel.data(plistModel.createIndex(i,0),Qt.UserRole)))) 
@@ -103,6 +96,8 @@ if __name__ == '__main__':
     context.setContextProperty('plistModel', plistModel)
 
     song = QMediaPlayer()
+    playlist = QMediaPlaylist(song)
+    song.setPlaylist(playlist)
     context.setContextProperty('song', song)
 
     qv = QQuickView(engine,None)
@@ -120,6 +115,8 @@ if __name__ == '__main__':
     cartist.uidChanged.connect(updateAlbums)
     cartist.uidChanged.connect(updatePList)
     calbum.uidChanged.connect(updatePList)
+    playlist.currentIndexChanged.connect(updateCItem)
+    qmlPlaylist.clicked.connect(playlist.setCurrentIndex)
     updateArtists()
     updateAlbums()
     updatePList()
