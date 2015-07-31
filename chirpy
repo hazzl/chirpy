@@ -46,7 +46,7 @@ def updatePList():
         playlist.currentIndexChanged.connect(updateCItem)
         qmlPlaylist.clicked.connect(playlist.setCurrentIndex)
     playlist.clear()
-    for i in range (plistModel.rowCount()-1):
+    for i in range (plistModel.rowCount()):
         playlist.addMedia(QMediaContent(QUrl.fromLocalFile(
 		plistModel.data(plistModel.createIndex(i,0),Qt.UserRole)))) 
 def updateArtists():
