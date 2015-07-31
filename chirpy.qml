@@ -90,29 +90,67 @@ Rectangle {
 		playbutton.clicked.connect(hide)
 	    }
 	}
+	Image {
+	    id: cover
+	    objectName: "cover"
+	    anchors.top: currentGenre.bottom
+	    anchors.topMargin: 15
+	    height: 256
+	    width: 256
+	    fillMode: Image.PreserveAspectFit
+	    state: "hidden"
+	    function hide() {
+		    if (cover.state==="showing") cover.state="hidden";
+	    }
+	    function show() {
+		    if (cover.state==="hidden") cover.state="showing";
+	    }
+	    states: [
+		State {
+			name: "hidden"
+			PropertyChanges {
+				target: cover
+				x: -width
+				opacity: 0
+			}
+		    },
+		State {
+			name: "showing"
+			PropertyChanges {
+				target: cover
+				x: currentGenre.x
+				opacity: 1
+			}
+		    }]
+	    transitions: Transition {
+		    NumberAnimation {
+			    target: cover
+			    properties: "x,opacity"
+			    duration: 300
+			    easing.type: Easing.InOutQuad
+		    }
+		}
+	    Component.onCompleted: {
+		albumList.showing.connect(hide)
+		artistList.showing.connect(hide)
+		genreList.showing.connect(hide)
+		playbutton.clicked.connect(show)
+		}
+	}
     }
-    Image {
-	id: cover
-	objectName: "cover"
-	anchors.bottom: playList.top
-	anchors.bottomMargin: 10
-	anchors.left: playList.left
-	height: 128
-	width: 128
-	fillMode: Image.PreserveAspectFit
-    }	
     ListView {
 	id: playList
 	signal clicked(int index)
 	objectName: "playList"
 	model: plistModel
+	height: 300	
         anchors.bottom: playbutton.top
+	anchors.bottomMargin: 15
 	anchors.right: parent.right
-	height: 110
 	width: parent.width/2
 	clip: true
 	preferredHighlightBegin: Global.normalSize
-	preferredHighlightEnd: 4*Global.normalSize
+	preferredHighlightEnd: 6*Global.normalSize
 	highlightRangeMode: ListView.ApplyRange
 	highlight: Rectangle { color: "darkgrey"; opacity: .2 }
 	delegate: Text {
@@ -125,7 +163,7 @@ Rectangle {
 			playList.clicked(index);}
 	    }
 	    Behavior on font.pixelSize { NumberAnimation { easing.type: Easing.InOutQuart; duration: 200 }}
-	}
+	    }
     }
     IButton {
         id: playbutton
