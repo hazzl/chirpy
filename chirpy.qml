@@ -106,7 +106,7 @@ Rectangle {
 	    id: cover
 	    objectName: "cover"
 	    anchors.top: currentGenre.bottom
-	    anchors.topMargin: 32
+	    anchors.topMargin: 34
 	    height: 256
 	    width: 256
 	    fillMode: Image.PreserveAspectFit
@@ -122,7 +122,7 @@ Rectangle {
 	    Text {
 		id: artistName
 		anchors.bottom: cover.source.toString() === "" ? albumTitle.top: parent.top
-		anchors.bottomMargin: 5
+		anchors.bottomMargin: 3
 		anchors.horizontalCenter: parent.horizontalCenter
 		font.pixelSize: Global.normalSize
 		font.bold: true
@@ -138,10 +138,11 @@ Rectangle {
 		color: Global.textColor
 		Connections {
 		    target: song
-		    onMetaDataChanged: {
-			if (key === "AlbumTitle")
+		    onMetaDataChanged: switch(key) {
+			case "AlbumTitle":
 			    albumTitle.text = value
-			if (key === "ContributingArtist")
+			    break;
+			case "ContributingArtist":
 			    artistName.text = value
 		    }
 		}
@@ -185,14 +186,14 @@ Rectangle {
 	signal clicked(int index)
 	objectName: "playList"
 	model: plistModel
-	height: 300
+	height: 302
 	anchors.bottom: playbutton.top
-	anchors.bottomMargin: 15
+	anchors.bottomMargin: 18
 	anchors.right: parent.right
 	width: parent.width / 2
 	clip: true
-	preferredHighlightBegin: Global.normalSize
-	preferredHighlightEnd: 6 * Global.normalSize
+	preferredHighlightBegin: Global.normalSize *4
+	preferredHighlightEnd: Global.normalSize * 11
 	highlightRangeMode: ListView.ApplyRange
 	highlight: Rectangle {
 	    color: "darkgrey"
