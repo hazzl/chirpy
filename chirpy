@@ -11,6 +11,8 @@ from sqlistmodel import sqlistmodel, playlistmodel
 
 def updateCItem(pos):
     qmlPlaylist.setProperty("currentIndex", pos)
+    if pos==-1:
+        return
     songpath = plistModel.data(plistModel.createIndex(pos,0), Qt.UserRole)
     newcover = Path.join(Path.dirname(songpath),"album.jpg")
     oldcover = QUrl.toLocalFile(cover.property("source"))
