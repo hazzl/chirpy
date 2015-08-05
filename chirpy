@@ -50,9 +50,9 @@ def updateArtists():
            FROM song_genres g INNER JOIN songs s ON g.song_id = s.id
            INNER JOIN song_artists sa USING (song_id)
            INNER JOIN artists a ON a.id = sa.artist_id
-           WHERE g.genre_id = """+str(genre)+" ORDER BY a.name ASC")
+           WHERE g.genre_id = """+str(genre)+" ORDER BY upper(a.name) ASC")
     else:
-        artistModel.updateData("SELECT id,name FROM artists ORDER BY name ASC")
+        artistModel.updateData("SELECT DISTINCT id,name FROM artists ORDER BY upper(name) ASC")
 def updateAlbums():
     genre = int(cgenre.property("uid"))
     artist = int(cartist.property("uid"))
@@ -75,7 +75,7 @@ def updateAlbums():
     query="SELECT DISTINCT a.id, a.name FROM "+qfrom
     if where:
       query += "WHERE "+where
-    query += "ORDER BY a.name ASC"
+    query += "ORDER BY upper(a.name) ASC"
     albumModel.updateData(query)
 
 if __name__ == '__main__':
