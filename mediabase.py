@@ -26,9 +26,9 @@ class mediabase:
 		timesplayed INTEGER,
 		timesskipped INTEGER,
 		lastplayed DATETIME,
-		filemtime DATETIME
+		filectime DATETIME
 		);
-	CREATE UNIQUE INDEX IF NOT EXISTS pathidx ON songs (path,filemtime);
+	CREATE UNIQUE INDEX IF NOT EXISTS pathidx ON songs (path);
 	CREATE TABLE IF NOT EXISTS albums (
 		id	INTEGER PRIMARY KEY,
 		category INTEGER REFERENCES categories(id),
@@ -63,17 +63,17 @@ class mediabase:
 		self._conn.commit()
 		self._conn.isolation_level="DEFERRED"
 	def addObj(self, mo):
-		basetime=self.getMTime(mo['path'][0])
-		if basetime > 0 and mo['mtime'][0] > basetime:
+		basetime=self.getCTime(mo['path'][0])
+		if basetime > 0 and mo['ctime'][0] > basetime:
 			raise NotImplementedError('re-adding existing data')
 		q = self._conn.cursor()
 		for key in ['album', 'title', 'artist', 'genre']:
 			if key not in mo.keys():
 				mo[key]=['Unknown']
 		mo['album'][0] = self.getId('albums', mo['album'][0])
-		rows = "album,name,path,filemtime"
+		rows = "album,name,path,filectime"
 		parameters = '?,?,?,?'
-		values = ( mo['album'][0], mo['title'][0], mo['path'][0], mo['mtime'][0])
+		values = ( mo['album'][0], mo['title'][0], mo['path'][0], mo['ctime'][0])
 		if 'track-number' in mo.keys():
 			rows = rows+',trackno'
 			parameters = parameters+',?'
@@ -97,8 +97,8 @@ class mediabase:
 			return q.lastrowid
 		else:
 			return data[0]
-	def getMTime(self, path):
+	def getCTime(self, path):
 		q = self._conn.cursor()
-		q.execute("SELECT filemtime FROM songs WHERE path = ?",(path,))
+		q.execute("SELECT filectime FROM songs WHERE path = ?",(path,))
 		data = q.fetchone()
 		return data[0] if data is not None else 0

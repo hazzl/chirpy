@@ -8,9 +8,9 @@ from mdreader import mdreader
 from mediabase import mediabase
 
 def scan_file (path):
-	mtime = os.stat(path).st_mtime
-	basetime = mbase.getMTime(path)
-	if basetime >= mtime:
+	ctime = os.stat(path).st_ctime
+	basetime = mbase.getCTime(path)
+	if basetime >= ctime:
 		return None
 	url = 'file://'+urllib.parse.quote(path)
 	if path.endswith('.mpc') or path.endswith('.ape'):
@@ -25,7 +25,7 @@ def scan_file (path):
 		return None
 	data = mreader.read_metadata(url)
 	if data:
-		data['mtime'] = [os.stat(path).st_mtime]
+		data['ctime'] = [ctime]
 		data['path'] = [path]
 	return data
 
@@ -37,6 +37,4 @@ if __name__ == '__main__':
 		for f in files:
 			mobject = scan_file(os.path.join(path,f))
 			if mobject:
-#				for key in mobject.keys():
-#					print (key, '=>', mobject[key])
 				mbase.addObj(mobject)			
