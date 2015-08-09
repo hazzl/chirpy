@@ -38,3 +38,6 @@ if __name__ == '__main__':
 			mobject = scan_file(os.path.join(path,f))
 			if mobject:
 				mbase.addObj(mobject)			
+	mbase.deleteUnreferenced("artists","song_artists","artist_id")
+	mbase.deleteUnreferenced("genres","song_genres","genre_id")
+	mbase.deleteUnreferenced("albums","songs","album")

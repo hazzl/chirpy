@@ -111,6 +111,15 @@ class mediabase:
 			genre = genre[0]
 			q.execute("DELETE FROM song_genres WHERE (song_id = ?) AND (genre_id = ?)", (song_id, genre))
 		self._conn.commit()
+	def deleteUnreferenced(self, table1, table2, ref):
+		q = self._conn.cursor()
+		q.execute("SELECT id FROM "+table1+" EXCEPT SELECT DISTINCT "+
+			ref+" FROM "+table2)
+		not_needed = q.fetchall()
+		for row in not_needed:
+			q.execute("DELETE FROM "+table1+" WHERE id = ?",row)
+		if not_needed is not None:
+			self._conn.commit()
 	def getId(self, table, name):
 		q = self._conn.cursor()
 		q.execute("SELECT id FROM "+table+" WHERE name = ?", (name,))
