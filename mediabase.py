@@ -63,29 +63,53 @@ class mediabase:
 		self._conn.commit()
 		self._conn.isolation_level="DEFERRED"
 	def addObj(self, mo):
-		basetime=self.getCTime(mo['path'][0])
-		if basetime > 0 and mo['ctime'][0] > basetime:
-			raise NotImplementedError('re-adding existing data')
+		(song_id,basetime)=self.getCTime(mo['path'][0])
+		if basetime > 0 and mo['ctime'][0] == basetime:
+			return
 		q = self._conn.cursor()
 		for key in ['album', 'title', 'artist', 'genre']:
 			if key not in mo.keys():
 				mo[key]=['Unknown']
 		mo['album'][0] = self.getId('albums', mo['album'][0])
-		rows = "album,name,path,filectime"
-		parameters = '?,?,?,?'
-		values = ( mo['album'][0], mo['title'][0], mo['path'][0], mo['ctime'][0])
+		columns = ["album","name","path","filectime"]
+		values = [mo['album'][0], mo['title'][0], mo['path'][0], mo['ctime'][0]]
 		if 'track-number' in mo.keys():
-			rows = rows+',trackno'
-			parameters = parameters+',?'
-			values = values + (mo['track-number'][0],)
-		q.execute("INSERT INTO songs("+rows+") VALUES ("+parameters+")", values)
-		song_id = q.lastrowid
+			columns.append('trackno')
+			values.append(mo['track-number'][0])
+		if song_id == 0:
+			para = "?"+",?"*(len(columns)-1)
+			q.execute("INSERT INTO songs("+",".join(columns)+") VALUES ("+para+")", tuple(values))
+			song_id = q.lastrowid
+		else:
+			para = str()
+			for i in range(len(columns)):
+				para = para+""+columns[i]+"=?"+","
+			para = para[:-1]
+			query = "UPDATE songs SET "+para+" WHERE id="+str(song_id)
+			q.execute(query, tuple(values))
+		q.execute("SELECT artist_id FROM song_artists WHERE song_id = ?",(song_id,))
+		old = set(q.fetchall())
+		new = set()
 		for artist in mo['artist']:
-			artist = self.getId('artists',artist)
+			new.add((self.getId('artists',artist),))
+		for artist in new - old:
+			artist = artist[0]
 			q.execute("INSERT INTO song_artists VALUES (?, ?, ?)", (song_id, artist, 1))
+		for artist in old - new:
+			artist = artist[0]
+			q.execute("DELETE FROM song_artists WHERE (song_id = ?) AND (artist_id = ?)", (song_id, artist))
+
+		q.execute("SELECT genre_id FROM song_genres WHERE song_id = ?", (song_id,))
+		old = set(q.fetchall())
+		new = set()
 		for genre in mo['genre']:
-			genre = self.getId('genres',genre)
+			new.add((self.getId('genres',genre),))
+		for genre in new - old:
+			genre = genre[0]
 			q.execute("INSERT INTO song_genres VALUES (?, ?)", (song_id, genre))
+		for genre in old - new:
+			genre = genre[0]
+			q.execute("DELETE FROM song_genres WHERE (song_id = ?) AND (genre_id = ?)", (song_id, genre))
 		self._conn.commit()
 	def getId(self, table, name):
 		q = self._conn.cursor()
@@ -99,6 +123,6 @@ class mediabase:
 			return data[0]
 	def getCTime(self, path):
 		q = self._conn.cursor()
-		q.execute("SELECT filectime FROM songs WHERE path = ?",(path,))
+		q.execute("SELECT id,filectime FROM songs WHERE path = ?",(path,))
 		data = q.fetchone()
-		return data[0] if data is not None else 0
+		return data if data is not None else (0,0)

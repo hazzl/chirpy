@@ -9,7 +9,7 @@ from mediabase import mediabase
 
 def scan_file (path):
 	ctime = os.stat(path).st_ctime
-	basetime = mbase.getCTime(path)
+	basetime = mbase.getCTime(path)[1]
 	if basetime >= ctime:
 		return None
 	url = 'file://'+urllib.parse.quote(path)
