@@ -117,6 +117,7 @@ class mediabase:
 		not_needed = q.fetchall()
 		for row in not_needed:
 			q.execute("DELETE FROM "+table1+" WHERE id = ?",row)
+			print("Deleted", table1[:-1], row[0])
 		if not_needed is not None:
 			self._conn.commit()
 	def getId(self, table, name):
