@@ -1,7 +1,7 @@
 #!/usr/bin/python3
 import sys
 import os.path as Path
-from PyQt5.QtCore import QUrl, QObject, Qt, QModelIndex
+from PyQt5.QtCore import QUrl, QObject, Qt
 from PyQt5.QtMultimedia import QMediaPlayer, QMediaContent, QMediaPlaylist
 from PyQt5.QtWidgets import QApplication
 from PyQt5.QtQuick import QQuickView, QQuickItem

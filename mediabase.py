@@ -63,9 +63,6 @@ class mediabase:
 		self._conn.commit()
 		self._conn.isolation_level="DEFERRED"
 	def addObj(self, mo):
-		(song_id,basetime)=self.getCTime(mo['path'][0])
-		if basetime > 0 and mo['ctime'][0] == basetime:
-			return
 		q = self._conn.cursor()
 		for key in ['album', 'title', 'artist', 'genre']:
 			if key not in mo.keys():
@@ -76,40 +73,42 @@ class mediabase:
 		if 'track-number' in mo.keys():
 			columns.append('trackno')
 			values.append(mo['track-number'][0])
-		if song_id == 0:
+		if mo['song_id'] == 0:
 			para = "?"+",?"*(len(columns)-1)
 			q.execute("INSERT INTO songs("+",".join(columns)+") VALUES ("+para+")", tuple(values))
-			song_id = q.lastrowid
+			mo['song_id'] = q.lastrowid
 		else:
 			para = str()
 			for i in range(len(columns)):
 				para = para+""+columns[i]+"=?"+","
 			para = para[:-1]
-			query = "UPDATE songs SET "+para+" WHERE id="+str(song_id)
-			q.execute(query, tuple(values))
-		q.execute("SELECT artist_id FROM song_artists WHERE song_id = ?",(song_id,))
+			q.execute("UPDATE songs SET "+
+				para+" WHERE id="+
+				str(mo['song_id']),tuple(values))
+		q.execute("SELECT artist_id FROM song_artists WHERE song_id = ?",(mo['song_id'],))
 		old = set(q.fetchall())
 		new = set()
 		for artist in mo['artist']:
 			new.add((self.getId('artists',artist),))
 		for artist in new - old:
 			artist = artist[0]
-			q.execute("INSERT INTO song_artists VALUES (?, ?, ?)", (song_id, artist, 1))
+			q.execute("INSERT INTO song_artists VALUES (?, ?, ?)",\
+				(mo['song_id'], artist, 1))
 		for artist in old - new:
 			artist = artist[0]
-			q.execute("DELETE FROM song_artists WHERE (song_id = ?) AND (artist_id = ?)", (song_id, artist))
+			q.execute("DELETE FROM song_artists WHERE (song_id = ?) AND (artist_id = ?)", (mo['song_id'], artist))
 
-		q.execute("SELECT genre_id FROM song_genres WHERE song_id = ?", (song_id,))
+		q.execute("SELECT genre_id FROM song_genres WHERE song_id = ?", (mo['song_id'],))
 		old = set(q.fetchall())
 		new = set()
 		for genre in mo['genre']:
 			new.add((self.getId('genres',genre),))
 		for genre in new - old:
 			genre = genre[0]
-			q.execute("INSERT INTO song_genres VALUES (?, ?)", (song_id, genre))
+			q.execute("INSERT INTO song_genres VALUES (?, ?)", (mo['song_id'], genre))
 		for genre in old - new:
 			genre = genre[0]
-			q.execute("DELETE FROM song_genres WHERE (song_id = ?) AND (genre_id = ?)", (song_id, genre))
+			q.execute("DELETE FROM song_genres WHERE (song_id = ?) AND (genre_id = ?)", (mo['song_id'], genre))
 		self._conn.commit()
 	def deleteUnreferenced(self, table1, table2, ref):
 		q = self._conn.cursor()
