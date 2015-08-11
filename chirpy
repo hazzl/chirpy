@@ -40,7 +40,7 @@ def updatePList():
         where += "s.album="+str(album)+" "
     if where!='':
         where = "WHERE "+where
-    plistModel.updateData(query+where+"ORDER BY s.album,s.trackno ASC LIMIT 50")
+    plistModel.updateData(query+where+"ORDER BY s.album,s.trackno ASC LIMIT 64")
     playlist.clear()
     for i in range (plistModel.rowCount()):
         playlist.addMedia(QMediaContent(QUrl.fromLocalFile(
