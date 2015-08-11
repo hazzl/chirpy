@@ -121,7 +121,7 @@ Rectangle {
 	    }
 	    Text {
 		id: artistName
-		anchors.bottom: cover.source.toString() === "" ? albumTitle.top: parent.top
+		anchors.bottom: cover.status == Image.Ready ? parent.top: albumTitle.top
 		anchors.bottomMargin: 3
 		anchors.horizontalCenter: parent.horizontalCenter
 		font.pixelSize: Global.normalSize

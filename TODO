@@ -1,3 +1,2 @@
--use file error for image element cover art
-- unconditionally store cover art in source property
+- unconditionally store cover art in source property -> throws error
 - update statistics
