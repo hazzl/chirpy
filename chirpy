@@ -28,16 +28,16 @@ def updatePList():
     where = '' 
     if genre:
         query += "INNER JOIN song_genres g ON g.song_id=s.id "
-        where += "g.genre_id="+str(genre)+" "
+        where += "g.genre_id={} ".format(genre)
     if artist:
         query += "INNER JOIN song_artists a ON a.song_id=s.id "
         if where!='':
             where += "AND "
-        where += "a.artist_id="+str(artist)+" "
+        where += "a.artist_id={} ".format(artist)
     if album:
         if where!='':
             where += "AND "
-        where += "s.album="+str(album)+" "
+        where += "s.album={} ".format(album)
     if where!='':
         where = "WHERE "+where
     plistModel.updateData(query+where+"ORDER BY s.album,s.trackno ASC LIMIT 64")
@@ -47,38 +47,38 @@ def updatePList():
 		plistModel.data(plistModel.index(i,0),Qt.UserRole))))
 def updateArtists():
     genre = int(cgenre.property("uid"))
+    query = "SELECT DISTINCT a.id, a.name FROM "
     if genre:
-        artistModel.updateData("""SELECT DISTINCT a.id, a.name
-           FROM song_genres g INNER JOIN songs s ON g.song_id = s.id
+        query += """song_genres g INNER JOIN songs s ON g.song_id = s.id
            INNER JOIN song_artists sa USING (song_id)
            INNER JOIN artists a ON a.id = sa.artist_id
-           WHERE g.genre_id = """+str(genre)+" ORDER BY upper(a.name) ASC")
+           WHERE g.genre_id="""+str(genre)
     else:
-        artistModel.updateData("SELECT DISTINCT id,name FROM artists ORDER BY upper(name) ASC")
+        query += "artists a"
+    artistModel.updateData(query +" ORDER BY upper(a.name)")
 def updateAlbums():
     genre = int(cgenre.property("uid"))
     artist = int(cartist.property("uid"))
-    qfrom = ""
+    query = ""
     where = ""
     if artist:
-      qfrom = "song_artists sa INNER JOIN songs s ON sa.song_id=s.id "
+      query = "song_artists sa INNER JOIN songs s ON sa.song_id=s.id "
       where = "sa.artist_id={} ".format(artist)
     if genre:
-      if qfrom:
-        qfrom += "INNER JOIN song_genres g ON g.song_id=s.id "
+      if query:
+        query += "INNER JOIN song_genres g ON g.song_id=s.id "
         where += "AND "
       else:
-        qfrom = "song_genres g INNER JOIN songs s ON g.song_id=s.id "
+        query = "song_genres g INNER JOIN songs s ON g.song_id=s.id "
       where += "g.genre_id={} ".format(genre)
-    if qfrom:
-      qfrom += "INNER JOIN albums a ON a.id=s.album "
+    if query:
+      query += "INNER JOIN albums a ON a.id=s.album "
     else:
-      qfrom = "albums a "
-    query="SELECT DISTINCT a.id, a.name FROM "+qfrom
+      query = "albums a "
+    query="SELECT DISTINCT a.id, a.name FROM "+query
     if where:
       query += "WHERE "+where
-    query += "ORDER BY upper(a.name) ASC"
-    albumModel.updateData(query)
+    albumModel.updateData(query+"ORDER BY upper(a.name) ASC")
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
