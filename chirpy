@@ -9,11 +9,25 @@ import sqlite3
 from sqlistmodel import sqlistmodel, playlistmodel
 from chirpyplayer import chirpyPlayer
 
+def newSongClicked(pos):
+    played = song.position()
+    if played > 2500:
+        song.skipped = True
+    song.playlist().setCurrentIndex(pos)
+def checkSkipped():
+    if song.previousId != 0:
+        if not song.skipped:
+            if song.position() > max(song.duration()-3000,1):
+                plistModel.recordPlayed(song.previousId)
+        else:
+            plistModel.recordSkipped(song.previousId)
 def updateCItem(pos):
+    checkSkipped()
+    song.previousId = plistModel.data(plistModel.index(pos, 0), Qt.UserRole+1)
     qmlPlaylist.setProperty("currentIndex", pos)
     if pos==-1:
         return
-    songpath = plistModel.data(plistModel.createIndex(pos,0), Qt.UserRole)
+    songpath = plistModel.data(plistModel.index(pos,0), Qt.UserRole)
     newcover = Path.join(Path.dirname(songpath),"album.jpg")
     oldcover = QUrl.toLocalFile(cover.property("source"))
     if newcover != oldcover:
@@ -21,10 +35,12 @@ def updateCItem(pos):
             newcover = None
         cover.setProperty("source", QUrl.fromLocalFile(newcover))
 def updatePList():
+    checkSkipped()
     genre = int(cgenre.property("uid"))
     artist = int(cartist.property("uid"))
     album = int(calbum.property("uid"))
-    query = "SELECT DISTINCT s.name, s.path FROM songs s "
+    query = """SELECT DISTINCT s.name, s.path, s.id FROM songs s INNER JOIN
+		albums b ON s.album = b.id """
     where = '' 
     if genre:
         query += "INNER JOIN song_genres g ON g.song_id=s.id "
@@ -40,7 +56,8 @@ def updatePList():
         where += "s.album={} ".format(album)
     if where!='':
         where = "WHERE "+where
-    plistModel.updateData(query+where+"ORDER BY s.album,s.trackno ASC LIMIT 64")
+    query += where+"ORDER BY b.lastplayed,s.album,s.trackno LIMIT 64"
+    plistModel.updateData(query)
     song.replacePlaylist(plistModel)
 def updateArtists():
     genre = int(cgenre.property("uid"))
@@ -107,7 +124,7 @@ if __name__ == '__main__':
     cartist = root.findChild(QQuickItem, "currentArtist")
     qmlPlaylist = root.findChild(QQuickItem, "playList")
     cover = root.findChild(QQuickItem, "cover")
-    root.findChild(QQuickItem, "slider").pressedChanged.connect(song.skipped)
+    root.findChild(QQuickItem, "slider").pressedChanged.connect(song.setSkipped)
     cgenre.uidChanged.connect(updateAlbums)
     cgenre.uidChanged.connect(updateArtists)
     cgenre.uidChanged.connect(updatePList)
@@ -115,7 +132,7 @@ if __name__ == '__main__':
     cartist.uidChanged.connect(updatePList)
     calbum.uidChanged.connect(updatePList)
     song.playlist().currentIndexChanged.connect(updateCItem)
-    qmlPlaylist.clicked.connect(song.playlist().setCurrentIndex)
+    qmlPlaylist.clicked.connect(newSongClicked)
     updateArtists()
     updateAlbums()
     updatePList()

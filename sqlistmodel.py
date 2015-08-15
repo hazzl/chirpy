@@ -35,10 +35,31 @@ class playlistmodel(sqlistmodel):
 	def __init__(self, conn):
 		QAbstractListModel.__init__(self)
 		self._conn = conn
-		self._data = [('', '')]
+		self._data = [('', '', 0)]
 		self._rolesindex = {
 			Qt.DisplayRole: 0, 
-			Qt.UserRole: 1}
+			Qt.UserRole: 1,
+			Qt.UserRole+1: 2}
 	def roleNames(self):
 		return {Qt.DisplayRole: b"name",
-			Qt.UserRole: b"url"}
+			Qt.UserRole: b"url",
+			Qt.UserRole+1: b"uid"}
+	def recordPlayed(self, uid):
+		q = self._conn.cursor()
+		q.execute('SELECT timesplayed,album FROM songs WHERE id=?', (uid,))
+		times,album = q.fetchone()
+		if times is None:
+			times = 0
+		q.execute("""UPDATE songs SET lastplayed=strftime('%s','now'),
+			timesplayed=? WHERE id=?""",(times+1,uid))
+		q.execute("""UPDATE albums SET lastplayed=strftime('%s','now')
+			WHERE id=?""",(album,))
+		self._conn.commit()
+	def recordSkipped(self, uid):
+		q = self._conn.cursor()
+		q.execute('SELECT timesskipped FROM songs WHERE id=?', (uid,))
+		times = q.fetchone()[0]
+		if times is None:
+			times = 0
+		q.execute("UPDATE songs SET timesskipped=? WHERE id=?",(times+1,uid))
+		self._conn.commit()

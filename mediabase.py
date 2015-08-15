@@ -12,6 +12,8 @@ class mediabase:
 		self._conn.isolation_level = "EXCLUSIVE"
 		q = self._conn.cursor()
 		q.executescript("""
+	PRAGMA page_size = 16384;
+	PRAGMA temp_store = MEMORY;
 	CREATE TABLE IF NOT EXISTS config (
 		key	TEXT PRIMARY KEY,
 		value	TEXT
@@ -34,7 +36,8 @@ class mediabase:
 		category INTEGER REFERENCES categories(id),
 		name	TEXT,
 		trackcount INTEGER,
-		datetime DATE
+		datetime DATE,
+		lastplayed DATETIME
 		);
 	CREATE INDEX IF NOT EXISTS albumidx ON albums (name);
 	CREATE TABLE IF NOT EXISTS artists (
