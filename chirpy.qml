@@ -195,6 +195,7 @@ Rectangle {
 	preferredHighlightBegin: Global.normalSize *4
 	preferredHighlightEnd: Global.normalSize * 11
 	highlightRangeMode: ListView.ApplyRange
+	highlightMoveDuration: 600
 	highlight: Rectangle {
 	    color: "darkgrey"
 	    opacity: .2
