@@ -234,6 +234,7 @@ Rectangle {
 
     Slider {
 	id: slider
+	objectName: "slider"
 	width: parent.width - 180
 	height: Global.normalSize
 	anchors.verticalCenter: playbutton.verticalCenter

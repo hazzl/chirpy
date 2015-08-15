@@ -2,12 +2,12 @@
 import sys
 import os.path as Path
 from PyQt5.QtCore import QUrl, QObject, Qt
-from PyQt5.QtMultimedia import QMediaPlayer, QMediaContent, QMediaPlaylist
 from PyQt5.QtWidgets import QApplication
 from PyQt5.QtQuick import QQuickView, QQuickItem
 from PyQt5.QtQml import QQmlApplicationEngine
 import sqlite3
 from sqlistmodel import sqlistmodel, playlistmodel
+from chirpyplayer import chirpyPlayer
 
 def updateCItem(pos):
     qmlPlaylist.setProperty("currentIndex", pos)
@@ -41,10 +41,7 @@ def updatePList():
     if where!='':
         where = "WHERE "+where
     plistModel.updateData(query+where+"ORDER BY s.album,s.trackno ASC LIMIT 64")
-    playlist.clear()
-    for i in range (plistModel.rowCount()):
-        playlist.addMedia(QMediaContent(QUrl.fromLocalFile(
-		plistModel.data(plistModel.index(i,0),Qt.UserRole))))
+    song.replacePlaylist(plistModel)
 def updateArtists():
     genre = int(cgenre.property("uid"))
     query = "SELECT DISTINCT a.id, a.name FROM "
@@ -98,9 +95,7 @@ if __name__ == '__main__':
     plistModel = playlistmodel(conn)
     context.setContextProperty('plistModel', plistModel)
 
-    song = QMediaPlayer()
-    playlist = QMediaPlaylist(song)
-    song.setPlaylist(playlist)
+    song = chirpyPlayer()
     context.setContextProperty('song', song)
 
     qv = QQuickView(engine,None)
@@ -112,14 +107,15 @@ if __name__ == '__main__':
     cartist = root.findChild(QQuickItem, "currentArtist")
     qmlPlaylist = root.findChild(QQuickItem, "playList")
     cover = root.findChild(QQuickItem, "cover")
+    root.findChild(QQuickItem, "slider").pressedChanged.connect(song.skipped)
     cgenre.uidChanged.connect(updateAlbums)
     cgenre.uidChanged.connect(updateArtists)
     cgenre.uidChanged.connect(updatePList)
     cartist.uidChanged.connect(updateAlbums)
     cartist.uidChanged.connect(updatePList)
     calbum.uidChanged.connect(updatePList)
-    playlist.currentIndexChanged.connect(updateCItem)
-    qmlPlaylist.clicked.connect(playlist.setCurrentIndex)
+    song.playlist().currentIndexChanged.connect(updateCItem)
+    qmlPlaylist.clicked.connect(song.playlist().setCurrentIndex)
     updateArtists()
     updateAlbums()
     updatePList()
