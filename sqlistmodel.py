@@ -3,7 +3,7 @@ import sqlite3
 
 class sqlistmodel(QAbstractListModel):
 	def __init__(self, conn):
-		QAbstractListModel.__init__(self)
+		super().__init__()
 		self._conn = conn
 		self._data = [(0, '')]
 		self._rolesindex = {
