@@ -1,2 +1,5 @@
+- cd playing
+- swipe to config screen
+- radio
+- categories in album list
 - unconditionally store cover art in source property -> throws error
-- update statistics
