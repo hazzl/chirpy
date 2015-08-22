@@ -73,6 +73,7 @@ class mdreader:
 			"TLAN": "language",
 			"TRSO": "radioowner",
 			"TRSN": "radiostationname",
+			"TOPE": "originalperformer",
 			"TOWN": "fileowner",
 			"WCOP": "wwwcopyright",
 			"WOAS": "wwwsource",
