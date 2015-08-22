@@ -71,6 +71,11 @@ class mediabase:
 			if key not in mo.keys():
 				mo[key]=['Unknown']
 		mo['album'][0] = self.getId('albums', mo['album'][0])
+		# FIXME category gets overwritten for each song
+		if 'grouping' in mo.keys():
+			mo['grouping'][0] = self.getId('categories', mo['grouping'][0])
+			q.execute("""UPDATE albums SET category = ?
+				WHERE id=?""", (mo['grouping'][0], mo['album'][0]))
 		columns = ["album","name","path","filectime"]
 		values = [mo['album'][0], mo['title'][0], mo['path'][0], mo['ctime'][0]]
 		if 'track-number' in mo.keys():

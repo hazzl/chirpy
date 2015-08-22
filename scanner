@@ -40,3 +40,4 @@ if __name__ == '__main__':
 	mbase.deleteUnreferenced("artists","song_artists","artist_id")
 	mbase.deleteUnreferenced("genres","song_genres","genre_id")
 	mbase.deleteUnreferenced("albums","songs","album")
+	mbase.deleteUnreferenced("categories","albums","category")
