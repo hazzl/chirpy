@@ -92,4 +92,8 @@ class mdreader:
 		buf.get_memory(0).unmap(info)
 		tag = data[:4].decode("latin_1")
 		val = data[11:-1].decode("latin_1")
-		return (id3[tag], val)
+		if tag not in id3.keys():
+			print("Unknown id3v2 tag:", tag)
+			return(tag, val)
+		else:
+			return (id3[tag], val)
