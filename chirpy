@@ -94,7 +94,7 @@ def updateAlbums():
       cquery += "WHERE "+where
     cquery += "UNION ALL SELECT DISTINCT a.id,a.name,'' AS cat FROM "+query
     if where:
-      cquery += "AND "
+      cquery += "WHERE "+where+"AND "
     else:
       cquery += "WHERE "
     cquery += "a.category IS NULL "
