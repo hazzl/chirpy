@@ -95,6 +95,23 @@ Rectangle {
 		currentAlbum.text = name
 		currentAlbum.uid = uid
 	    }
+	    section.property: "category"
+	    section.criteria: ViewSection.FullString
+	    section.delegate: Text {
+			    text: section
+			    font.pixelSize: Global.normalSize
+			    font.italic: true
+			    verticalAlignment: Text.AlignBottom
+			    height: Global.bigSize
+			    color: "white"
+			    Rectangle {
+				color: Global.textColor
+				visible: section != ''
+				height: 2
+				width: 192
+				anchors.top: parent.baseline
+		    }
+	    }
 	    reference: currentArtist
 	    Component.onCompleted: {
 		artistList.showing.connect(hide)

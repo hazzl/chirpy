@@ -31,6 +31,19 @@ class sqlistmodel(QAbstractListModel):
 	def roleNames(self):
 		return {Qt.DisplayRole: b"name",
 			Qt.UserRole: b"uid"}
+class albumlistmodel(sqlistmodel):
+	def __init__(self, conn):
+		QAbstractListModel.__init__(self)
+		self._conn = conn
+		self._data = [(0, '', '')]
+		self._rolesindex = {
+			Qt.DisplayRole: 1,
+			Qt.UserRole: 0,
+			Qt.UserRole+1: 2}
+	def roleNames(self):
+		return {Qt.DisplayRole: b"name",
+			Qt.UserRole: b"uid",
+			Qt.UserRole+1: b"category"}
 class playlistmodel(sqlistmodel):
 	def __init__(self, conn):
 		QAbstractListModel.__init__(self)

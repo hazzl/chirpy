@@ -6,7 +6,7 @@ from PyQt5.QtWidgets import QApplication
 from PyQt5.QtQuick import QQuickView, QQuickItem
 from PyQt5.QtQml import QQmlApplicationEngine
 import sqlite3
-from sqlistmodel import sqlistmodel, playlistmodel
+from sqlistmodel import sqlistmodel, playlistmodel, albumlistmodel
 from chirpyplayer import chirpyPlayer
 
 def newSongClicked(pos):
@@ -81,7 +81,7 @@ def updateAlbums():
     if genre:
       if query:
         query += "INNER JOIN song_genres g ON g.song_id=s.id "
-        where += "AND "
+        where += "AND " # query != None therefore where != None
       else:
         query = "song_genres g INNER JOIN songs s ON g.song_id=s.id "
       where += "g.genre_id={} ".format(genre)
@@ -89,10 +89,16 @@ def updateAlbums():
       query += "INNER JOIN albums a ON a.id=s.album "
     else:
       query = "albums a "
-    query="SELECT DISTINCT a.id, a.name FROM "+query
+    cquery="SELECT DISTINCT a.id,a.name,c.name AS cat FROM "+query+"JOIN categories c ON a.category=c.id "
     if where:
-      query += "WHERE "+where
-    albumModel.updateData(query+"ORDER BY upper(a.name) ASC")
+      cquery += "WHERE "+where
+    cquery += "UNION ALL SELECT DISTINCT a.id,a.name,'' AS cat FROM "+query
+    if where:
+      cquery += "AND "
+    else:
+      cquery += "WHERE "
+    cquery += "a.category IS NULL "
+    albumModel.updateData(cquery+"ORDER BY cat DESC, a.name")
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
@@ -107,7 +113,7 @@ if __name__ == '__main__':
     context.setContextProperty('genreModel', genreModel)
     artistModel = sqlistmodel(conn)
     context.setContextProperty('artistModel', artistModel)
-    albumModel = sqlistmodel(conn)
+    albumModel = albumlistmodel(conn)
     context.setContextProperty('albumModel', albumModel)
     plistModel = playlistmodel(conn)
     context.setContextProperty('plistModel', plistModel)
