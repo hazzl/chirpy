@@ -109,16 +109,9 @@ Rectangle {
 	    anchors.topMargin: 34
 	    height: 256
 	    width: 256
+	    x: currentGenre.x
+	    opacity: 1
 	    fillMode: Image.PreserveAspectFit
-	    state: "showing"
-	    function hide() {
-		if (cover.state === "showing")
-		    cover.state = "hidden"
-	    }
-	    function show() {
-		if (cover.state === "hidden")
-		    cover.state = "showing"
-	    }
 	    Text {
 		id: artistName
 		anchors.bottom: cover.status == Image.Ready ? parent.top: albumTitle.top
@@ -128,7 +121,6 @@ Rectangle {
 		font.bold: true
 		color: Global.textColor
 	    }
-
 	    Text {
 		id: albumTitle
 		anchors.top: parent.bottom
@@ -147,24 +139,15 @@ Rectangle {
 		    }
 		}
 	    }
-	    states: [
-		State {
+	    states: State {
 		    name: "hidden"
+		    when: (genreList.state === 'showing' )||(artistList.state === 'showing')||(albumList.state === 'showing')
 		    PropertyChanges {
 			target: cover
 			x: -width
 			opacity: 0
 		    }
-		},
-		State {
-		    name: "showing"
-		    PropertyChanges {
-			target: cover
-			x: currentGenre.x
-			opacity: 1
-		    }
 		}
-	    ]
 	    transitions: Transition {
 		NumberAnimation {
 		    target: cover
@@ -172,12 +155,6 @@ Rectangle {
 		    duration: 300
 		    easing.type: Easing.InOutQuad
 		}
-	    }
-	    Component.onCompleted: {
-		albumList.showing.connect(hide)
-		artistList.showing.connect(hide)
-		genreList.showing.connect(hide)
-		playbutton.clicked.connect(show)
 	    }
 	}
     }
