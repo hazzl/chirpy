@@ -3,11 +3,13 @@ import sys
 import os.path as Path
 from PyQt5.QtCore import QUrl, QObject, Qt
 from PyQt5.QtWidgets import QApplication
+from PyQt5.QtGui import QCursor
 from PyQt5.QtQuick import QQuickView, QQuickItem
 from PyQt5.QtQml import QQmlApplicationEngine
 import sqlite3
 from sqlistmodel import sqlistmodel, playlistmodel, albumlistmodel
 from chirpyplayer import chirpyPlayer
+from config import configHandler
 
 def newSongClicked(pos):
     played = song.position()
@@ -108,6 +110,10 @@ if __name__ == '__main__':
     context = engine.rootContext()
 
     conn = sqlite3.connect('chirpy.sqlite')
+    conf = configHandler(conn)
+    if conf.get("hidePointer"):
+        app.setOverrideCursor( QCursor( Qt.BlankCursor ) )
+
     genreModel = sqlistmodel(conn)
     genreModel.updateData("SELECT id,name FROM genres ORDER BY name ASC")
     context.setContextProperty('genreModel', genreModel)
