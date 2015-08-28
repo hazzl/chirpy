@@ -222,14 +222,12 @@ Rectangle {
 	anchors.leftMargin: 8
 	width: 65
 	iconSource: song.state === Global.PlayingState ? "icons/Pause.png" : "icons/Play.png"
-	onClicked: song.state === Global.PlayingState ? song.pause(
-							    ) : song.play()
+	onClicked: song.state === Global.PlayingState ? song.pause() : song.play()
     }
-
     Slider {
 	id: slider
 	objectName: "slider"
-	width: parent.width - 180
+	width: parent.width - 200
 	height: Global.normalSize
 	anchors.verticalCenter: playbutton.verticalCenter
 	anchors.left: playbutton.right
@@ -249,11 +247,19 @@ Rectangle {
 	font.pixelSize: Global.normalSize
 	color: Global.textColor
 	function sec2min(sec) {
-	    var ret = Math.floor(sec / 60).toString() + ":"
-	    var secs = sec % 60
-	    if (secs < 10)
+	    var ret = ""
+	    if (sec > 3599) {
+		ret = Math.floor(sec / 3600).toString() + ":"
+		sec %= 3600
+	    }
+	    var mins = Math.floor(sec / 60)
+	    if ((ret.length > 0) && (mins < 10))
 		ret += "0"
-	    return ret + secs.toString()
+	    ret += mins.toString() + ":"
+	    sec %= 60
+	    if (sec < 10)
+		ret += "0"
+	    return ret + sec.toString()
 	}
     }
 }
