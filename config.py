@@ -7,7 +7,6 @@ class configHandler():
 		q = self._conn.cursor()
 		q.execute("SELECT * FROM config")
 		for (key, val) in q.fetchall():
-			print (key, "=>", val)
 			self._config[key]=val
 	def get(self, key):
 		if key in self._config.keys():
