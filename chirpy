@@ -36,11 +36,20 @@ def updateCItem(pos):
         if not Path.isfile(newcover):
             newcover = None
         cover.setProperty("source", QUrl.fromLocalFile(newcover))
+def getGenre():
+    return genreModel.data(
+        genreModel.index(cgenre.property("currentIndex"),0), Qt.UserRole)
+def getArtist():
+    return artistModel.data(
+        artistModel.index(cartist.property("currentIndex"),0), Qt.UserRole)
+def getAlbum():
+    return albumModel.data(
+        albumModel.index(calbum.property("currentIndex"),0), Qt.UserRole)
 def updatePList():
     checkSkipped()
-    genre = int(cgenre.property("uid"))
-    artist = int(cartist.property("uid"))
-    album = int(calbum.property("uid"))
+    genre = getGenre()
+    artist = getArtist()
+    album = getAlbum()
     query = """SELECT DISTINCT s.name, s.path, s.id FROM songs s INNER JOIN
 		albums b ON s.album = b.id """
     where = '' 
@@ -62,7 +71,7 @@ def updatePList():
     plistModel.updateData(query)
     song.replacePlaylist(plistModel)
 def updateArtists():
-    genre = int(cgenre.property("uid"))
+    genre = getGenre()
     query = "SELECT DISTINCT a.id, a.name FROM "
     if genre:
         query += """song_genres g INNER JOIN songs s ON g.song_id = s.id
@@ -73,8 +82,8 @@ def updateArtists():
         query += "artists a"
     artistModel.updateData(query +" ORDER BY upper(a.name)")
 def updateAlbums():
-    genre = int(cgenre.property("uid"))
-    artist = int(cartist.property("uid"))
+    genre = getGenre()
+    artist = getArtist()
     query = ""
     where = ""
     if artist:
@@ -131,23 +140,23 @@ if __name__ == '__main__':
     qv.setSource(QUrl('chirpy.qml'))
 
     root = qv.rootObject()
-    cgenre = root.findChild(QQuickItem, "currentGenre")
-    calbum = root.findChild(QQuickItem, "currentAlbum")
-    cartist = root.findChild(QQuickItem, "currentArtist")
+    cgenre = root.findChild(QQuickItem, "genreList")
+    cgenre.currentIndexChanged.connect(updateArtists)
+    cgenre.currentIndexChanged.connect(updateAlbums)
+    cgenre.currentIndexChanged.connect(updatePList)
+    calbum = root.findChild(QQuickItem, "albumList")
+    calbum.currentIndexChanged.connect(updatePList)
+    cartist = root.findChild(QQuickItem, "artistList")
+    cartist.currentIndexChanged.connect(updateAlbums)
+    cartist.currentIndexChanged.connect(updatePList)
     qmlPlaylist = root.findChild(QQuickItem, "playList")
-    cover = root.findChild(QQuickItem, "cover")
-    root.findChild(QQuickItem, "slider").pressedChanged.connect(song.setSkipped)
-    cgenre.uidChanged.connect(updateAlbums)
-    cgenre.uidChanged.connect(updateArtists)
-    cgenre.uidChanged.connect(updatePList)
-    cartist.uidChanged.connect(updateAlbums)
-    cartist.uidChanged.connect(updatePList)
-    calbum.uidChanged.connect(updatePList)
-    song.playlist().currentIndexChanged.connect(updateCItem)
-    qmlPlaylist.clicked.connect(newSongClicked)
     updateArtists()
     updateAlbums()
     updatePList()
+    cover = root.findChild(QQuickItem, "cover")
+    root.findChild(QQuickItem, "slider").pressedChanged.connect(song.setSkipped)
+    song.playlist().currentIndexChanged.connect(updateCItem)
+    qmlPlaylist.clicked.connect(newSongClicked)
 
     qv.show()
 

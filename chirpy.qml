@@ -36,36 +36,11 @@ Rectangle {
 	    iconSource: "icons/Album.png"
 	    onClicked: albumList.toggle()
 	}
-	SQLabel {
-	    id: currentGenre
-	    objectName: "currentGenre"
-	    anchors.left: genreButton.left
-	    anchors.top: genreButton.bottom
-	}
-	SQLabel {
-	    id: currentArtist
-	    objectName: "currentArtist"
-	    anchors.left: artistButton.left
-	    anchors.top: artistButton.bottom
-	}
-	SQLabel {
-	    id: currentAlbum
-	    objectName: "currentAlbum"
-	    anchors.right: albumButton.right
-	    anchors.top: albumButton.bottom
-	}
 	SQListView {
 	    id: genreList
-	    reference: currentGenre
+	    objectName: "genreList"
+	    reference: genreButton
 	    model: genreModel
-	    onClicked: {
-		currentGenre.text = name
-		currentGenre.uid = uid
-		currentArtist.text = ""
-		currentArtist.uid = 0
-		currentAlbum.text = ""
-		currentAlbum.uid = 0
-	    }
 	    Component.onCompleted: {
 		artistList.showing.connect(hide)
 		albumList.showing.connect(hide)
@@ -74,14 +49,9 @@ Rectangle {
 	}
 	SQListView {
 	    id: artistList
-	    reference: currentArtist
+	    objectName: "artistList"
+	    reference: artistButton
 	    model: artistModel
-	    onClicked: {
-		currentArtist.text = name
-		currentArtist.uid = uid
-		currentAlbum.text = ""
-		currentAlbum.uid = 0
-	    }
 	    Component.onCompleted: {
 		genreList.showing.connect(hide)
 		albumList.showing.connect(hide)
@@ -90,29 +60,26 @@ Rectangle {
 	}
 	SQListView {
 	    id: albumList
+	    objectName: "albumList"
 	    model: albumModel
-	    onClicked: {
-		currentAlbum.text = name
-		currentAlbum.uid = uid
-	    }
+	    reference: artistButton
 	    section.property: "category"
 	    section.criteria: ViewSection.FullString
 	    section.delegate: Text {
-			    text: section
-			    font.pixelSize: Global.normalSize
-			    font.italic: true
-			    verticalAlignment: Text.AlignBottom
-			    height: Global.bigSize
-			    color: "white"
-			    Rectangle {
-				color: Global.textColor
-				visible: section != ''
-				height: 2
-				width: 192
-				anchors.top: parent.baseline
-		    }
+		text: section
+		font.pixelSize: Global.normalSize
+		font.italic: true
+		color: "white"
+		height: Global.bigSize
+		verticalAlignment: Text.AlignBottom
+		Rectangle {
+		    color: Global.textColor
+		    visible: section != ''
+		    height: 2
+		    width: 192
+		    anchors.top: parent.baseline
+		}
 	    }
-	    reference: currentArtist
 	    Component.onCompleted: {
 		artistList.showing.connect(hide)
 		genreList.showing.connect(hide)
@@ -122,16 +89,34 @@ Rectangle {
 	Image {
 	    id: cover
 	    objectName: "cover"
-	    anchors.top: currentGenre.bottom
-	    anchors.topMargin: 34
+	    x: genreButton.x
+	    y: genreButton.y + genreButton.height + 36
 	    height: 256
 	    width: 256
-	    x: currentGenre.x
 	    opacity: 1
 	    fillMode: Image.PreserveAspectFit
+	    states: State {
+		name: "hidden"
+		when: (genreList.state === 'showing')
+		      || (artistList.state === 'showing')
+		      || (albumList.state === 'showing')
+		PropertyChanges {
+		    target: cover
+		    x: -width
+		    opacity: 0
+		}
+	    }
+	    transitions: Transition {
+		NumberAnimation {
+		    target: cover
+		    properties: "x,opacity"
+		    duration: 300
+		    easing.type: Easing.InOutQuad
+		}
+	    }
 	    Text {
 		id: artistName
-		anchors.bottom: cover.status == Image.Ready ? parent.top: albumTitle.top
+		anchors.bottom: cover.status == Image.Ready ? parent.top : albumTitle.top
 		anchors.bottomMargin: 3
 		anchors.horizontalCenter: parent.horizontalCenter
 		font.pixelSize: Global.normalSize
@@ -147,30 +132,13 @@ Rectangle {
 		color: Global.textColor
 		Connections {
 		    target: song
-		    onMetaDataChanged: switch(key) {
-			case "AlbumTitle":
-			    albumTitle.text = value
-			    break;
-			case "ContributingArtist":
-			    artistName.text = value
-		    }
-		}
-	    }
-	    states: State {
-		    name: "hidden"
-		    when: (genreList.state === 'showing' )||(artistList.state === 'showing')||(albumList.state === 'showing')
-		    PropertyChanges {
-			target: cover
-			x: -width
-			opacity: 0
-		    }
-		}
-	    transitions: Transition {
-		NumberAnimation {
-		    target: cover
-		    properties: "x,opacity"
-		    duration: 300
-		    easing.type: Easing.InOutQuad
+		    onMetaDataChanged: switch (key) {
+				       case "AlbumTitle":
+					   albumTitle.text = value
+					   break
+				       case "ContributingArtist":
+					   artistName.text = value
+				       }
 		}
 	    }
 	}
@@ -180,13 +148,12 @@ Rectangle {
 	signal clicked(int index)
 	objectName: "playList"
 	model: plistModel
-	height: 302
-	anchors.bottom: playbutton.top
-	anchors.bottomMargin: 18
+	y: albumButton.y + albumButton.height + Global.smallSize
+	height: playbutton.y - y - 3
 	anchors.right: parent.right
 	width: parent.width / 2
 	clip: true
-	preferredHighlightBegin: Global.normalSize *4
+	preferredHighlightBegin: Global.normalSize * 4
 	preferredHighlightEnd: Global.normalSize * 11
 	highlightRangeMode: ListView.ApplyRange
 	highlightMoveDuration: 600

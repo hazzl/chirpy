@@ -3,7 +3,6 @@ import "globals.js" as Global
 
 ListView {
     id: sqlistView
-    signal clicked (string name, int uid)
     signal showing
     property Item reference
 
@@ -12,6 +11,7 @@ ListView {
     width: (parent.width - 16) / 2
     highlight: Rectangle {color: "darkgrey"; radius: 2; opacity:.3}
     highlightMoveDuration: 600
+    currentIndex: -1
 
     function toggle() {
         if (sqlistView.state === "hidden")
@@ -32,10 +32,15 @@ ListView {
             height: Global.bigSize+4
             MouseArea {
                 anchors.fill: parent
-                onClicked: { sqlistView.currentIndex=index;
-			     sqlistView.clicked(name, uid); }
+                onClicked: {
+			if (sqlistView.currentIndex == index)
+				sqlistView.currentIndex = -1
+			else
+				sqlistView.currentIndex=index
+		}
             }
 	}
+
     states: [
 	State {
 	    name: "hidden"
@@ -51,9 +56,9 @@ ListView {
 	    name: "showing"
 	    PropertyChanges {
 		target: sqlistView
-		x: currentGenre.x
-		y: (currentGenre.y + currentGenre.height) 
-		height: playbutton.y - y
+		x: genreButton.x
+		y: genreButton.y + genreButton.height + Global.smallSize
+		height: playbutton.y - y - 3
 		opacity: 1
 		enabled: true
 	    }
