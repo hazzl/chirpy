@@ -1,5 +1,6 @@
 #!/usr/bin/python3
 
+import argparse
 import sys
 import os
 import mimetypes
@@ -22,10 +23,14 @@ def scan_file (path):
 	return mreader.read_metadata(url)
 
 if __name__ == '__main__':
+	parser = argparse.ArgumentParser()
+	parser.add_argument('path', type=str, help="the media directroy to scan")
+	parser.add_argument('-v','--verbose', action='store_true', help="print all tags encountered")
+	args = parser.parse_args()
 	mreader = mdreader()
 	mbase = mediabase('chirpy.sqlite')
 	mimetypes.init()
-	for cdir, dirs, files in os.walk(sys.argv[1]):
+	for cdir, dirs, files in os.walk(args.path):
 		for f in files:
 			path = os.path.join(cdir,f)
 			ctime = os.stat(path).st_ctime
@@ -33,6 +38,9 @@ if __name__ == '__main__':
 			if basetime < ctime:
 				mobject = scan_file(path)
 				if mobject:
+					if args.verbose:
+						for key in mobject.keys():
+							print (key,"=>",mobject[key])
 					mobject['ctime'] = [ctime]
 					mobject['path'] = [path]
 					mobject['song_id'] = song_id
