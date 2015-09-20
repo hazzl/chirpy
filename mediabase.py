@@ -5,6 +5,7 @@
 #
 
 import sqlite3
+import os
 
 class mediabase:
 	def __init__(self, filename):
@@ -143,3 +144,15 @@ class mediabase:
 		q.execute("SELECT id,filectime FROM songs WHERE path = ?",(path,))
 		data = q.fetchone()
 		return data if data is not None else (0,0)
+	def purge(self):
+		q = self._conn.cursor()
+		q.execute("SELECT path FROM songs")
+		for f in q.fetchall():
+			if not os.path.exists(f[0]):
+				print (f[0],"does not exist")
+				q.execute("SELECT id FROM songs WHERE path=?", f)
+				uid = q.fetchone()[0]
+				q.execute("DELETE FROM song_artists WHERE song_id=?", (uid,))
+				q.execute("DELETE FROM song_genres WHERE song_id=?", (uid,))
+				q.execute("DELETE FROM songs WHERE id=?",(uid,))
+				self._conn.commit()

@@ -26,6 +26,7 @@ if __name__ == '__main__':
 	parser = argparse.ArgumentParser()
 	parser.add_argument('path', type=str, help="the media directroy to scan")
 	parser.add_argument('-v','--verbose', action='store_true', help="print all tags encountered")
+	parser.add_argument('-p', '--purge', action='store_true', help="delete non-existing files from the database")
 	args = parser.parse_args()
 	mreader = mdreader()
 	mbase = mediabase('chirpy.sqlite')
@@ -45,6 +46,8 @@ if __name__ == '__main__':
 					mobject['path'] = [path]
 					mobject['song_id'] = song_id
 					mbase.addObj(mobject)		
+	if args.purge:
+		mbase.purge()
 	mbase.deleteUnreferenced("artists","song_artists","artist_id")
 	mbase.deleteUnreferenced("genres","song_genres","genre_id")
 	mbase.deleteUnreferenced("albums","songs","album")
